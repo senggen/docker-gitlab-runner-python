@@ -1,15 +1,21 @@
-FROM senggen/python-centos
+FROM python:2-slim
 
 RUN pip install pylint && \
     pip install pytest && \
     pip install coverage && \
     pip install pytest-cov
 
-RUN curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh | bash && \
-    yum -y install gitlab-runner && \
-    yum clean all && \
-    wget -qO /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
-    chmod +x /usr/bin/dumb-init
+ADD https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64 /usr/bin/dumb-init
+RUN chmod +x /usr/bin/dumb-init
+
+RUN apt-get update -y && \
+    apt-get install -y curl && \
+    curl -s https://packages.gitlab.com/install/repositories/runner/gitlab-ci-multi-runner/script.deb.sh | bash && \
+    apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y gitlab-ci-multi-runner && \
+    apt-get clean && \
+    apt-get autoremove -y
 
 VOLUME ["/etc/gitlab-runner/python", "/etc/gitlab-runner"]
 ENTRYPOINT ["/usr/bin/dumb-init", "gitlab-runner"]
